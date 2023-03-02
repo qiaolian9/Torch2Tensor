@@ -5,8 +5,8 @@ torch fx based pytorch model converter, including pytorch2tvm_relax
 torch fx based pytorch model compiler, including relax ---> low level TensorIR
 
 # Installation
-```
-pip install git+
+```bash
+pip install git+git@github.com:qiaolian9/mlc.git
 ```
 
 # How to use
