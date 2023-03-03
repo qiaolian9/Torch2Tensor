@@ -1,8 +1,7 @@
 from __future__ import annotations
-from tvm import te, relax
+from tvm import relax
 import torch.nn as nn
 
-# ---------------------- 构造映射函数 ---------------------------------------#
 # torch graph/nn.Module --> IR high level relax.function
 def map_params(param: nn.Parameter):
     return relax.const(param.data.cpu().numpy(), dtype='float32')

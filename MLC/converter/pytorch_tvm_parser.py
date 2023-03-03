@@ -16,7 +16,8 @@ from .pytorch_graph import PytorchGraph
 from .common_utils import (
     map_reduce,
     gen_numpy_data,
-    gen_tvm_data
+    gen_tvm_data,
+    get_function_name
 )
 
 
@@ -46,7 +47,7 @@ class PytorchRelaxParser:
         )
 
     def print_tensorIR(self, tensorIR):
-        logger.debug(
+        logger.info(
             tensorIR.show()
         )
 
@@ -81,16 +82,55 @@ class PytorchRelaxParser:
                         fn_inputs.append(input_layer.value)
                         self.node_post_process(node, input_layer)
                     elif node.op == 'get_attr':
-                        pass
+                        getattr_layer = GetAttrFunc(bb, node, module=self.model)
+                        self.node_post_process(node, getattr_layer)
                     elif node.op == 'call_module':
                         module = self.named_modules[node.target]
                         if isinstance(module, (nn.Conv2d, nn.Conv1d)):
                             conv_layer = ConvLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, conv_layer)
+                        elif isinstance(module, nn.BatchNorm2d):
+                            batchnorm_layer = BatchNormLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, batchnorm_layer)
+                        elif isinstance(module, nn.ReLU):
+                            relu_layer = ReluLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, relu_layer)
+                        elif isinstance(module, nn.Linear):
+                            linear_layer = LinearLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, linear_layer)
+                        elif isinstance(module, nn.MaxPool2d):
+                            maxpool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, maxpool2d_layer)
+                        elif isinstance(module, nn.AdaptiveAvgPool2d):
+                            adaptiveavgpool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, adaptiveavgpool2d_layer)
+                        else:
+                            raise NotImplementedError('nn.Module type %s is not implemented now!' % type(module))
                     elif node.op == 'call_function':
-                        pass
+                        function_name = get_function_name(node.target)
+                        if function_name == 'add':
+                            add_layer = AddLayer(bb, node, self.node_map)
+                            self.node_post_process(node, add_layer)
+                        elif function_name == 'matmul':
+                            matmul_layer = MatmulFunc(bb, node, self.node_map)
+                            self.node_post_process(node, matmul_layer)
+                        elif function_name == 'relu':
+                            relu_layer = ReluFunc(bb, node, self.node_map)
+                            self.node_post_process(node, relu_layer)
+                        elif function_name == 'flatten':
+                            flatten_layer = FlattenFunc(bb, node, self.node_map)
+                            self.node_post_process(node, flatten_layer)
+                        elif function_name == 'avg_pool2d':
+                            avgpool2d_layer = AvgPool2dFunc(bb, node, self.node_map)
+                            self.node_post_process(node, avgpool2d_layer)
+                        else:
+                            raise NotImplementedError('func type %s is not implemented now!' % function_name)
                     elif node.op == 'call_method':
-                        pass
+                        if str(node.target) == 'view':
+                            reshape_layer = ReshapeFunc(bb, node, self.node_map)
+                            self.node_post_process(node, reshape_layer)
+                        else:
+                            raise NotImplementedError('method %s is not implemented now!')
                     elif node.op == 'output':
                         if output_layer is not None:
                             raise Warning('output error')

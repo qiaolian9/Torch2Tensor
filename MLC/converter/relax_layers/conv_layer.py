@@ -70,7 +70,7 @@ class ConvLayer(BaseLayer):
         out = self.bb.emit(relax.op.nn.conv2d(x, kernel, **attr_dict), name_hint=self._name + ":conv")
 
         if self._name + "_bias" in self._init_tensor.keys():
-            out = self.bb.emit(relax.op.add(out, bias), name_hint=self._name)
+            out = self.bb.emit(relax.op.add(out, bias), name_hint=self._name + ":bias")
         
         logger.info("conv_layer: " + self._name + " created")
         self.value = out

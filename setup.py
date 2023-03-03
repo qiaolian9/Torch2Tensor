@@ -4,11 +4,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="mlc",
+    name="MLC",
     version="0.0.1",
     author="qiaoliang",
     author_email="ql1an9@mail.ustc.edu.cn",
-    description="PyTorch -> tvm Relax --(op fuse & op optimizer)--> tvm TensorIR",
+    description="MLC:PyTorch -> tvm Relax --(op fuse & op optimizer)--> tvm TensorIR",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/qiaolian9/mlc",
