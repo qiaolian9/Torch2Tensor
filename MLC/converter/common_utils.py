@@ -20,10 +20,10 @@ def map_reduce(args, fn):
         shape = sum(list(map_reduce(elem, fn) for elem in args), [])
     elif isinstance(args, list):
         shape = sum(list(map_reduce(elem, fn) for elem in args), [])
-    elif args == None:
-        shape = []
-    else:
+    elif args is not None:
         shape = [fn(args)]
+    else:
+        shape = []
 
     shape_list.extend(shape)
 

@@ -1,1 +1,1 @@
-from .avgpool import avg_pool2d
+# from .avgpool import avg_pool2d

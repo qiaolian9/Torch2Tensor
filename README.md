@@ -39,4 +39,26 @@ pip install git+git@github.com:qiaolian9/mlc.git
     PR.print_tensorIR(PR.TensorIR)
     ```
 # Torch FX tools
-graph tracer based on a open source project <https://github.com/inisis/brocolli>
+graph tracer based on an open source project <https://github.com/inisis/brocolli>
+
+# TVM Relax(Relay next)
+Relax based on project<https://github.com/tlc-pack/relax>
+
+# supported torch operation(for high-level Relax IR)
+|type|name|
+|---|---|
+|nn.Module|conv2d,batchnorm,relu,silu,linear,maxpool2d,adaptive_avg_pool2d,softmax,sigmoid|
+|function|flatten,add,relu,reshape,matmul,subtract,softmax,sigmoid|
+|method|view(reshape)|
+
+# Tensor Expression operation(for low-level Tensor IR)
+|type|name|
+|---|---|
+|relax.op|add,subtract,matmul,variance,mean,reshape,permute_dims|
+|relax.nn|softmax,sigmoid,relu,silu,conv2d,maxpool2d,adaptiveavgpool2d,batchnorm|
+
+# main API
+```python
+PR = PytorchRelaxParser(model, x, input_shapes)
+... details in  class PytorchRelaxParser
+```

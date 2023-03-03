@@ -6,7 +6,7 @@ from .op_map import *
 @relax.expr_functor.mutator
 class LowerToTensorIR(relax.PyExprMutator):
     def __init__(self, mod: Optional[IRModule], op_map=None):
-        print(op_map)
+        # print(op_map)
         super().__init__()
         self.mod_ = mod
         self.op_map = {

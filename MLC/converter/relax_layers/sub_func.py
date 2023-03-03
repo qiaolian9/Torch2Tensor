@@ -4,7 +4,7 @@ import torch.nn as nn
 from tvm import relax
 from .base_layer import BaseLayer
 
-class AddLayer(BaseLayer):
+class SubFunc(BaseLayer):
     def __init__(self, bb, source_node, node_map, module=None, auto_gen=True):
         super().__init__(bb, source_node, node_map, module, auto_gen)
 
@@ -13,7 +13,7 @@ class AddLayer(BaseLayer):
         x = self.node_map[self._source_node.args[0]]
         y = self.node_map[self._source_node.args[1]]
 
-        out = self.bb.emit(relax.op.add(x, y), name_hint = self._name)
+        out = self.bb.emit(relax.op.subtract(x, y), name_hint = self._name)
         
-        logger.info("add_layer: " + self._name + " created")
+        logger.info("sub_layer: " + self._name + " created")
         self.value = out

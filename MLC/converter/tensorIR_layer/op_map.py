@@ -18,6 +18,11 @@ def map_add_te(bb: relax.BlockBuilder, call: relax.Call):
     x, b = call.args
     return bb.call_te(topi.add, x, b)
 
+@register_lower_pattern('relax.subtract')
+def map_sub_te(bb: relax.BlockBuilder, call: relax.Call):
+    x, b = call.args
+    return bb.call_te(topi.subtract, x, b)
+
 @register_lower_pattern('relax.matmul')
 def map_matmul_te(bb: relax.BlockBuilder, call: relax.Call):
     x, w = call.args
@@ -40,17 +45,34 @@ def map_reshape_te(bb: relax.BlockBuilder, call: relax.Call):
     x, shape = call.args
     return bb.call_te(topi.reshape, x, shape)
 
+@register_lower_pattern('relax.permute_dims')
+def map_permutedims_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    attrs = call.attrs
+    return bb.call_te(permute_dims, x, attrs.axes)
+
 # nn.op
-# @register_lower_pattern("relax.nn.dense")
-# def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
-#     x, w = call.args[0]
-#     return bb.call_te(topi.nn.dense, x, w)
+@register_lower_pattern("relax.nn.softmax")
+def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
+    x= call.args[0]
+    attrs = call.attrs
+    return bb.call_te(topi.nn.softmax, x, attrs.axis)
+
+@register_lower_pattern("relax.sigmoid")
+def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
+    x= call.args[0]
+    return bb.call_te(topi.sigmoid, x)
 
 # nn.activation
 @register_lower_pattern('relax.nn.relu')
 def map_relu_te(bb: relax.BlockBuilder, call: relax.Call):
     x = call.args[0]
     return bb.call_te(topi.nn.relu, x)
+
+@register_lower_pattern('relax.nn.silu')
+def map_relu_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    return bb.call_te(silu, x)
 
 # nn.conv
 @register_lower_pattern('relax.nn.conv2d')
@@ -73,8 +95,9 @@ def map_adaptiveAvgPool2d_te(bb: relax.BlockBuilder, call: relax.Call):
     return bb.call_te(topi.nn.adaptive_pool, x, attrs.output_size, 'avg', attrs.layout)
 
 # nn.norm
+@register_lower_pattern('relax.nn.batch_norm')
 def map_BatchNorm2d_te(bb: relax.BlockBuilder, call: relax.Call):
     x, gamma, beta, moving_mean, moving_var = call.args[:5]
     attrs = call.attrs
     # batch_norm has 3 return values(value & moving mean/var)
-    return bb.call_te(topi.nn.batch_norm, x, gamma, beta, moving_mean, moving_var, attrs.axis, attrs.epsilon, attrs.center, attrs.scale)[0]
+    return bb.call_te(topi.nn.batch_norm, x, gamma, beta, moving_mean, moving_var, attrs.axis, attrs.epsilon, attrs.center, attrs.scale)

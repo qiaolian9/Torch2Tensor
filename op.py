@@ -4,26 +4,34 @@ from tvm.relax.expr import Expr
 from typing import List, Optional, Tuple, Union
 from tvm import relax
 from tvm.script import relax as R
+bb = relax.BlockBuilder()
 
-# op_ = tvm._ffi.registry.list_global_func_names()
-# op_nn = []
-# for i in op_:
-#     if 'relax.op.nn' in i:
-#         print(i)
+@tvm.ir.op.register_op_attr('aadd', 'FInferStructInfo')
+def add(call: relax.Call, bb):
+    x = call.args[0]
+    y = call.args[0]
+    z = x + y
+    type(z)
+    return z.struct_info
+@tvm.register_func('addd')
+def add_(x, y):
+    return x + y
 
-# print(tvm.get_global_func('relax.op.nn.avg_pool2d'))
-tvm.ir.op.register_op_attr('relax.nn.avg_pool2d', 'avg_pool2d', '1')
-a = tvm.ir.Op.get('relax.nn.avg_pool2d')
-print(a, type(a))
+with bb.function('main'):
+    with bb.dataflow():
+        x = relax.Var('x', R.Tensor((1,3)))
+        y = relax.Var('y', R.Tensor((1,3)))
 
-b = dict(a=1,b=2)
-b = tvm.ir.make_node('DictAttrs', **b)
-print(b, type(b))
+        d = tvm.ir.Op.get("aadd")
+        # d = tvm.ir.Op.get("relax.add")
+        print(d.get_attr('FInferStructInfo'))
+        c = relax.Call(d, [x, y])
+        out = bb.emit(c)
+        bb.emit_output(out)
+    
+    bb.emit_func_output(out, [x ,y])
 
-datta = relax.Var('data', R.Tensor([1]))
-c = relax.Call(a, [datta], b)
-print(c, type(c), c.op, c.attrs.a)
+print(bb.get().show())
 
-import torch 
 
-torch.nn.av
+

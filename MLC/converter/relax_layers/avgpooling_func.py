@@ -21,7 +21,7 @@ class AvgPool2dFunc(BaseLayer):
                 layout = "NCHW",
                 out_layout = None,
             )
-            print(self._source_node)
+            
             attr_dict['pool_size'] = self.get_value_by_key_or_index("kernel_size", 1, None)
             attr_dict['strides'] = self.get_value_by_key_or_index("stride", 2, attr_dict['pool_size'])
             attr_dict['padding'] = self.get_value_by_key_or_index("padding", 3, 0)

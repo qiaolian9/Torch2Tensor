@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.fx.graph_module import GraphModule
 from tabulate import tabulate
-from tvm import relax
+from tvm import relax, IRModule
 import tvm
 
 torch.manual_seed(0)
@@ -23,7 +23,8 @@ from .common_utils import (
 
 class PytorchRelaxParser:
     def __init__(
-        self, model, inputs, input_shapes, fuse=False, concrete_args=None, dynamic_batch=False, device='cpu'
+        self, model, inputs, input_shapes, fuse=False, concrete_args=None, dynamic_batch=False, device='llvm',
+        target='cuda --max_threads_per_block=1024 --max_shared_memory_per_block=49152', 
     ):
         super(PytorchRelaxParser, self).__init__()
         self.model = model.eval()
@@ -35,8 +36,12 @@ class PytorchRelaxParser:
         self.concrete_args = concrete_args
         self.dynamic_batch = dynamic_batch
         self.device = device
+        self.target = target
 
     def print_tabular(self, graph_module):
+        '''
+            print computation graph(based on torch fx) 
+        '''
         nodes = list(graph_module.graph.nodes)
         node_specs = [[n.op, n.name, n.target, n.args, n.kwargs] for n in nodes]
         logger.debug(
@@ -47,11 +52,26 @@ class PytorchRelaxParser:
         )
 
     def print_tensorIR(self, tensorIR):
+        '''
+            print tvm high/low level Tensor programs(include relax and TensorIR)
+        '''
         logger.info(
             tensorIR.show()
         )
 
+    def print_op(self):
+        fn_names = [x.name_hint for x in self.TensorIR.functions]
+        if 'main' in fn_names:
+            fn_names.remove('main')
+        logger.info(
+            fn_names
+        )
+
     def convert(self):
+        '''
+            convert torch.nn.Module to computation graph by using torch FX
+            NOTE: only support static graph 
+        '''
         if isinstance(self.model, GraphModule):
             pass
         elif isinstance(self.model, nn.Module):
@@ -68,6 +88,10 @@ class PytorchRelaxParser:
         self.gen_relax_graph()
 
     def gen_relax_graph(self):
+        '''
+            generate tvm relax IR from torch.fx.grapgModule
+            NOTE: only support some ops in README now!
+        '''
         input_index = 0
         fn_inputs = []
         bb = relax.BlockBuilder()
@@ -86,7 +110,7 @@ class PytorchRelaxParser:
                         self.node_post_process(node, getattr_layer)
                     elif node.op == 'call_module':
                         module = self.named_modules[node.target]
-                        if isinstance(module, (nn.Conv2d, nn.Conv1d)):
+                        if isinstance(module, (nn.Conv2d, )):
                             conv_layer = ConvLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, conv_layer)
                         elif isinstance(module, nn.BatchNorm2d):
@@ -95,6 +119,9 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.ReLU):
                             relu_layer = ReluLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, relu_layer)
+                        elif isinstance(module, nn.SiLU):
+                            silu_layer = ReluLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, silu_layer)
                         elif isinstance(module, nn.Linear):
                             linear_layer = LinearLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, linear_layer)
@@ -104,13 +131,22 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.AdaptiveAvgPool2d):
                             adaptiveavgpool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, adaptiveavgpool2d_layer)
+                        elif isinstance(module, nn.Softmax):
+                            softmax_layer = SoftMaxLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, softmax_layer)
+                        elif isinstance(module, nn.Sigmoid):
+                            sigmoid_layer = SigmoidLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, sigmoid_layer)
                         else:
                             raise NotImplementedError('nn.Module type %s is not implemented now!' % type(module))
                     elif node.op == 'call_function':
                         function_name = get_function_name(node.target)
                         if function_name == 'add':
-                            add_layer = AddLayer(bb, node, self.node_map)
+                            add_layer = AddFunc(bb, node, self.node_map)
                             self.node_post_process(node, add_layer)
+                        elif function_name == 'sub':
+                            sub_layer = SubFunc(bb, node, self.node_map)
+                            self.node_post_process(node, sub_layer)
                         elif function_name == 'matmul':
                             matmul_layer = MatmulFunc(bb, node, self.node_map)
                             self.node_post_process(node, matmul_layer)
@@ -120,9 +156,15 @@ class PytorchRelaxParser:
                         elif function_name == 'flatten':
                             flatten_layer = FlattenFunc(bb, node, self.node_map)
                             self.node_post_process(node, flatten_layer)
-                        elif function_name == 'avg_pool2d':
-                            avgpool2d_layer = AvgPool2dFunc(bb, node, self.node_map)
-                            self.node_post_process(node, avgpool2d_layer)
+                        elif function_name == 'softmax':
+                            sigmoid_layer = SigmoidLayer(bb, node, self.node_map)
+                            self.node_post_process(node, sigmoid_layer)
+                        elif function_name == 'sigmoid':
+                            sigmoid_layer = SigmoidLayer(bb, node, self.node_map)
+                            self.node_post_process(node, sigmoid_layer)
+                        # elif function_name == 'avg_pool2d':
+                        #     avgpool2d_layer = AvgPool2dFunc(bb, node, self.node_map)
+                        #     self.node_post_process(node, avgpool2d_layer)
                         else:
                             raise NotImplementedError('func type %s is not implemented now!' % function_name)
                     elif node.op == 'call_method':
@@ -143,30 +185,92 @@ class PytorchRelaxParser:
         self.relax_graph = bb.get()
     
     def fuse_op(self):
+        '''
+            TO DO: op fused PASS
+        '''
         pass
 
     def gen_TensorIR(self):
+        '''
+            generate low level TensorIR from Relax IR
+        '''
         from .tensorIR_layer.lower_to_tensorir_pass import LowerToTensorIRPass
         self.TensorIR = LowerToTensorIRPass()(self.relax_graph)
+
+
+    def mlc_tune_op(self, mod_, op_name):
+        logger.info("target: %s; compile_tir_target: %s" % (self.target, self.compile_tir_target))
+        from tvm import meta_schedule as ms
+        logger.info("op: "+ op_name)
+        op_work_dir = self.work_dir + "op_%s" % (op_name)
+        try:
+            tuned_record = ms.tune_tir(mod_, target=self.target,
+                                   work_dir=op_work_dir,
+                                    task_name=self.task_name,
+                                    max_trials_global=self.max_trials_global,
+                                    num_trials_per_iter=self.num_trials_per_iter)
+            tuned_sch = ms.tir_integration.compile_tir(tuned_record, mod_, target=self.compile_tir_target)
+            new_func = tuned_sch.mod['main'].with_attr("global_symbol", op_name)
+            return new_func
+        except:
+            raise ValueError("op name is not in Model, please check func::print_op(self)")
+        
+    def mlc_tune_tir(self, Model: IRModule, op_list=None,
+                target=None, 
+                work_dir="./tune_tmp/",
+                task_name='main',
+                max_trials_global=64,
+                num_trials_per_iter=64,
+                compile_tir_target='cuda'):
+        if op_list is None:
+            logger.info('tune all ops default')
+            op_list = [x.name_hint for x in Model.functions]
+            if 'main' in op_list:
+                op_list.remove('main')
+            print(len(op_list))
+
+        if target is None and self.target is None:
+            raise Warning("hardwear targer %s is None" % target)
+        if target is not None:
+            self.target = target
+
+        self.work_dir=work_dir
+        self.task_name=task_name
+        self.max_trials_global=max_trials_global
+        self.num_trials_per_iter=num_trials_per_iter
+        self.compile_tir_target=compile_tir_target
+
+        for i, op_name in enumerate(op_list):
+            self.mlc_tune_op(Model, )
+            mod_ = tvm.IRModule.from_expr(Model[op_name].with_attr("global_symbol", 'main'))
+            new_func = self.mlc_tune_op(mod_, op_name)
+            gv = Model.get_global_var(op_name)
+            Model.update_func(gv, new_func)
+            return Model
+        self.tuned_TensorIR = Model
+        return self.tuned_TensorIR
    
     def check_result(self):
+        '''
+            check result between torch and tvm
+        '''
         self.pyotrch_inference()
-        self.onnx_inference()
+        self.TensorIR_inference()
         pytorch_output_list = map_reduce(self.pytorch_output, gen_numpy_data)
-
+        tvm_output = map_reduce(self.TensorIR_output, gen_numpy_data)     
         assert len(pytorch_output_list) == len(
-            self.tvm_output
+            tvm_output
         ), "pytorch_output: %d vs tvm_output %d" % (
             len(pytorch_output_list),
-            len(self.tvm_output),
+            len(tvm_output),
         )
         
-        for idx in range(len(self.onnx_output)):
+        for idx in range(len(tvm_output)):
             np.testing.assert_allclose(
                 pytorch_output_list[idx],
-                self.tvm_output[idx],
-                rtol=1e-7,
-                atol=1e-3,
+                tvm_output[idx],
+                rtol=1e-5,
+                atol=1e-5
             )
         logger.info("accuracy test passed")
 
@@ -188,16 +292,22 @@ class PytorchRelaxParser:
         
 
     def TensorIR_inference(self):
-        if self.device == 'cpu':
+        if self.device == 'llvm':
             device = tvm.cpu()
         elif self.device == 'cuda':
             device = tvm.cuda()
         else:
             raise NotImplementedError("target device %s is not supported!" % self.device)
-        ex = relax.vm.build(self.TensorIR, device)
+        self.get_Tensor_input()
+        ex = relax.vm.build(self.TensorIR, self.device)
         vm = relax.vm.VirtualMachine(ex, device)
-        self.TensorIR_output = [vm['main'](self.tensor_input_list)]
+        self.TensorIR_output = []
+        for i in self.tensor_input_list:
+            self.TensorIR_output.append(vm['main'](i))
 
 
     def node_post_process(self, node, relax_layer):
+        '''
+            used to record graph node & supported to generate Relax IR
+        '''
         self.node_map[node] = relax_layer.value
