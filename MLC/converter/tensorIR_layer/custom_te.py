@@ -1,7 +1,9 @@
-from tvm import te
+from tvm import te, relax
 from tvm import topi
+import numpy as np
+import tvm
 
-__all__ = ['mean_te', 'var_te', 'silu', 'permute_dims']
+__all__ = ['mean_te', 'var_te', 'silu_te', 'permute_dims_te', 'dropout_te', 'relu6_te']
 
 def mean_te(x, axis):
     shape = x.shape
@@ -29,14 +31,24 @@ def var_te(x, axis):
     var_out = te.compute(sum_.shape, lambda i: sum_[i] / n_, name='var_out')
     return var_out
 
-def silu(x):
+# nn.activate
+def silu_te(x):
     t = topi.sigmoid(x)
     return topi.multiply(x, t)
 
-def permute_dims(x, axis):
+def relu6_te(x):
+    t = topi.nn.relu(x)
+    return te.compute(x.shape, lambda *i: te.min(t(*i), tvm.tir.const(6, t.dtype)))
+
+def permute_dims_te(x, axis):
     # need to be updated
     if axis == None:
         shape = x.shape
         i, j = shape[0].value, shape[1].value
         c = te.compute((j, i), lambda i, j: x[j,i], name='permute_dim_c')
     return c
+
+def dropout_te(x, rate):
+    out = te.compute(x.shape, lambda *i: x(*i))
+    mask = te.compute(x.shape, lambda *i: x(*i))
+    return [out, mask]

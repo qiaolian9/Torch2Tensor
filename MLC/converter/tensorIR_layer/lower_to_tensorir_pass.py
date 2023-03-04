@@ -2,6 +2,7 @@ import tvm
 from tvm import relax, IRModule
 from typing import List, Optional, Tuple, Union
 from .op_map import *
+from loguru import logger
 
 @relax.expr_functor.mutator
 class LowerToTensorIR(relax.PyExprMutator):

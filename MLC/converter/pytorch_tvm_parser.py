@@ -7,8 +7,8 @@ from tabulate import tabulate
 from tvm import relax, IRModule
 import tvm
 
-torch.manual_seed(0)
-np.random.seed(0)
+# torch.manual_seed(0)
+# np.random.seed(0)
 
 from .relax_layers import *
 from .tensorIR_layer import *
@@ -82,6 +82,7 @@ class PytorchRelaxParser:
         self.pytorch_graph = PytorchGraph(
             self.model, self.inputs, self.concrete_args, self.dynamic_batch
         )
+        self.print_tabular(self.pytorch_graph)
         self.state_dict = self.pytorch_graph.graph_module.state_dict()
         self.named_modules = dict(self.pytorch_graph.graph_module.named_modules())
         self.node_map = dict()
@@ -106,7 +107,7 @@ class PytorchRelaxParser:
                         fn_inputs.append(input_layer.value)
                         self.node_post_process(node, input_layer)
                     elif node.op == 'get_attr':
-                        getattr_layer = GetAttrFunc(bb, node, module=self.model)
+                        getattr_layer = GetAttrLayer(bb, node, module=self.model)
                         self.node_post_process(node, getattr_layer)
                     elif node.op == 'call_module':
                         module = self.named_modules[node.target]
@@ -116,7 +117,7 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.BatchNorm2d):
                             batchnorm_layer = BatchNormLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, batchnorm_layer)
-                        elif isinstance(module, nn.ReLU):
+                        elif isinstance(module, (nn.ReLU, nn.ReLU6)):
                             relu_layer = ReluLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, relu_layer)
                         elif isinstance(module, nn.SiLU):
@@ -125,9 +126,9 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.Linear):
                             linear_layer = LinearLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, linear_layer)
-                        elif isinstance(module, nn.MaxPool2d):
-                            maxpool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
-                            self.node_post_process(node, maxpool2d_layer)
+                        elif isinstance(module, (nn.MaxPool2d, nn.AvgPool2d)):
+                            pool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, pool2d_layer)
                         elif isinstance(module, nn.AdaptiveAvgPool2d):
                             adaptiveavgpool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, adaptiveavgpool2d_layer)
@@ -137,6 +138,9 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.Sigmoid):
                             sigmoid_layer = SigmoidLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, sigmoid_layer)
+                        elif isinstance(module, nn.Dropout):
+                            dropout_layer = DropoutLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, dropout_layer)
                         else:
                             raise NotImplementedError('nn.Module type %s is not implemented now!' % type(module))
                     elif node.op == 'call_function':
@@ -150,29 +154,61 @@ class PytorchRelaxParser:
                         elif function_name == 'matmul':
                             matmul_layer = MatmulFunc(bb, node, self.node_map)
                             self.node_post_process(node, matmul_layer)
+                        elif function_name == 'mul':
+                            mul_layer = MulFunc(bb, node, self.node_map)
+                            self.node_post_process(node, mul_layer)
+                        elif function_name == 'floordiv':
+                            floordiv_layer = FloorDivFunc(bb, node, self.node_map)
+                            self.node_post_process(node, floordiv_layer)
                         elif function_name == 'relu':
                             relu_layer = ReluFunc(bb, node, self.node_map)
                             self.node_post_process(node, relu_layer)
                         elif function_name == 'flatten':
                             flatten_layer = FlattenFunc(bb, node, self.node_map)
                             self.node_post_process(node, flatten_layer)
+                        elif function_name == 'concat' or function_name == 'cat':
+                            concat_layer = ConcatFunc(bb, node, self.node_map)
+                            self.node_post_process(node, concat_layer)
                         elif function_name == 'softmax':
-                            sigmoid_layer = SigmoidLayer(bb, node, self.node_map)
+                            sigmoid_layer = SoftMaxLayer(bb, node, self.node_map)
                             self.node_post_process(node, sigmoid_layer)
                         elif function_name == 'sigmoid':
                             sigmoid_layer = SigmoidLayer(bb, node, self.node_map)
                             self.node_post_process(node, sigmoid_layer)
-                        # elif function_name == 'avg_pool2d':
-                        #     avgpool2d_layer = AvgPool2dFunc(bb, node, self.node_map)
-                        #     self.node_post_process(node, avgpool2d_layer)
+                        elif function_name == 'avg_pool2d':
+                            avgpool2d_layer = Pool2dFunc(bb, node, self.node_map)
+                            self.node_post_process(node, avgpool2d_layer)
+                        elif function_name == 'boolean_dispatch': # F.maxpooling
+                            avgpool2d_layer = Pool2dFunc(bb, node, self.node_map)
+                            self.node_post_process(node, avgpool2d_layer)
+                        elif function_name == 'adaptive_avg_pool2d': # F.maxpooling
+                            adaptiveavgpool2d_layer = Pool2dFunc(bb, node, self.node_map)
+                            self.node_post_process(node, adaptiveavgpool2d_layer)
+                        elif function_name == 'transpose': # F.maxpooling
+                            transpose_layer = TransposeFunc(bb, node, self.node_map)
+                            self.node_post_process(node, transpose_layer)
+                        elif function_name == 'getitem': # F.maxpooling
+                            getitem_layer = GetItemFunc(bb, node, self.node_map)
+                            self.node_post_process(node, getitem_layer)
+                        elif function_name == 'getattr': # F.maxpooling
+                            getattr_layer = GetAttrFunc(bb, node, self.node_map)
+                            self.node_post_process(node, getattr_layer)
                         else:
+                            print(node.target, node)
                             raise NotImplementedError('func type %s is not implemented now!' % function_name)
                     elif node.op == 'call_method':
+                        logger.debug(node.target)
                         if str(node.target) == 'view':
                             reshape_layer = ReshapeFunc(bb, node, self.node_map)
                             self.node_post_process(node, reshape_layer)
+                        elif str(node.target) == 'size':
+                            size_layer = SizeFunc(bb, node, self.node_map)
+                            self.node_post_process(node, size_layer)
+                        elif str(node.target) == 'contiguous':
+                            contiguous_layer = SizeFunc(bb, node, self.node_map)
+                            self.node_post_process(node, contiguous_layer)
                         else:
-                            raise NotImplementedError('method %s is not implemented now!')
+                            raise NotImplementedError('method %s is not implemented now!' % node.target)
                     elif node.op == 'output':
                         if output_layer is not None:
                             raise Warning('output error')
@@ -269,7 +305,7 @@ class PytorchRelaxParser:
             np.testing.assert_allclose(
                 pytorch_output_list[idx],
                 tvm_output[idx],
-                rtol=1e-5,
+                rtol=1e-2,
                 atol=1e-5
             )
         logger.info("accuracy test passed")

@@ -1,4 +1,4 @@
-# mlc
+# Torch2Tensor
 Torch FX module convertor -> TVM
 
 torch fx based pytorch model converter, including pytorch2tvm_relax
@@ -47,15 +47,14 @@ Relax based on project<https://github.com/tlc-pack/relax>
 # supported torch operation(for high-level Relax IR)
 |type|name|
 |---|---|
-|nn.Module|conv2d,batchnorm,relu,silu,linear,maxpool2d,adaptive_avg_pool2d,softmax,sigmoid|
-|function|flatten,add,relu,reshape,matmul,subtract,softmax,sigmoid|
+|nn.Module|conv2d,batchnorm,relu,silu,relu6,linear,maxpool2d,adaptive_avg_pool2d,avg_pool2d,softmax,sigmoid,Dropout|
+|function|flatten,add,relu,reshape,matmul,multiply,subtract,softmax,sigmoid,maxpool2d,avgpool2d,concat|
 |method|view(reshape)|
 
-# Tensor Expression operation(for low-level Tensor IR)
+
+# Model test
 |type|name|
-|---|---|
-|relax.op|add,subtract,matmul,variance,mean,reshape,permute_dims|
-|relax.nn|softmax,sigmoid,relu,silu,conv2d,maxpool2d,adaptiveavgpool2d,batchnorm|
+|cls|Alexnet,Resnet50,Inceptionv3,GoogleNet,densenet121,mobilenetv2|
 
 # main API
 ```python

@@ -27,9 +27,12 @@ class BaseLayer(object):
         pass
 
     def get_value_by_key_or_index(self, key, index, default=None):
+        # from loguru import logger
+        # logger.info(self._source_node.kwargs.keys())
+        # logger.info(self._source_node.args)
         if key in self._source_node.kwargs:
             return self._source_node.kwargs[key]
-        elif index < len(self._source_node.args):
+        elif index >= 0 and index < len(self._source_node.args):
             return self._source_node.args[index]
         else:
             return default

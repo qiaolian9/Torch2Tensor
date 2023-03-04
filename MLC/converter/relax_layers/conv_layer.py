@@ -62,7 +62,11 @@ class ConvLayer(BaseLayer):
     def generate_node(self):
         kernel = self.create_params(self._name + "_weight", self._module.weight)
         if self._module.bias is not None:
-            bias = self.create_params(self._name + "_bias", self._module.bias)
+            bias = self._module.bias
+            shape = [bias.shape[0]]
+            shape.extend([1] * len(self._module.weight.shape[2:]))
+            bias = bias.reshape(shape)
+            bias = self.create_params(self._name + "_bias", bias)
         x = self.node_map[self._source_node.args[0]]
 
         attr_dict = self.get_conv_attr()
