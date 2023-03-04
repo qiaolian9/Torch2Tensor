@@ -54,6 +54,7 @@ Relax based on project<https://github.com/tlc-pack/relax>
 
 # Model test
 |type|name|
+|---|---|
 |cls|Alexnet,Resnet50,Inceptionv3,GoogleNet,densenet121,mobilenetv2|
 
 # main API
