@@ -1,13 +1,13 @@
 # Torch2Tensor
+
 **Torch nn.Module** -> **TVM Tensor program**
-## process
+
+A easy tool for generating Tensor Program from torch nn.module
+
+## Main Process
 ```
 nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor IR ---> ex&vm
 torch fx based pytorch model compiler, including relax ---> low level TensorIR
-```
-# Installation
-```bash
-pip install git+git@github.com:qiaolian9/mlc.git
 ```
 
 # How to use
@@ -34,8 +34,9 @@ pip install git+git@github.com:qiaolian9/mlc.git
 
         PR = PytorchRelaxParser(model, x, input_shapes)
         PR.convert() # torch.nn.Module -> torch.fx.graph & tvm relax IR
-        print_tensorIR(PR.relax_graph)
+        print_tensorIR(PR.relax_graph) # -> show Relax IR
         PR.gen_TensorIR() # tvm relax IR -> tvm tensor IR
+        #print_tensorIR(PR.TensorIR)  # show Tensor IR
 
         # PR.mlc_tune_tir() # auto schedule(ansor) tune tir
 
@@ -43,7 +44,7 @@ pip install git+git@github.com:qiaolian9/mlc.git
         PR.check_result() # check correct between tensor program and torch model
     ```
 
-# supported torch operation(for high-level Relax IR)
+# Supported torch operations now(for high-level Relax IR)
 |type|name|
 |---|---|
 |nn.Module|conv2d,batchnorm,relu,silu,relu6,linear,maxpool2d,adaptive_avg_pool2d,avg_pool2d,softmax,sigmoid,Dropout|
@@ -57,12 +58,17 @@ pip install git+git@github.com:qiaolian9/mlc.git
 |Cls|CNN(10)|Alexnet,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Regnet,MNasnet,Squeezenet1,EfficientNet|
 |---|Transformer|ViT(*)|
 
+# Installation
+```bash
+pip install git+git@github.com:qiaolian9/mlc.git
+```
 
-# Torch FX & TVM Relax
-1. graph tracer based on an open source project <https://github.com/inisis/brocolli> \
-2. Relax based on project<https://github.com/tlc-pack/relax>
+# Acknowledgement
+1. [Relax](https://github.com/tlc-pack/relax): relax(relay next)
+2. [brocolli](https://github.com/inisis/brocolli): Torch Fx Pytorch Model Converter(for onnx & caffe)
+3. [MLC](https://mlc.ai/summer22-zh/): Machine Learning Compiler(chen etc.)
 
 # To Do
 1. register xxattrs(transpose & avgpool2d)
-2. torch.fx.wrap
+2. torch.fx.wrap (eg. func-len())
 3. fix getitem potential bug
