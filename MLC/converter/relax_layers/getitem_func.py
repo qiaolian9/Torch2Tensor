@@ -11,8 +11,10 @@ class GetItemFunc(BaseLayer):
     def generate_node(self):
         x = self.node_map[self._source_node.args[0]]
         index = self._source_node.args[1]
-        from ..register_relax.getshapevalue import getshapevalue
-        out = self.bb.emit(getshapevalue(x, index), name_hint=self._name)
-        
-        logger.info("getaitem_layer: " + self._name + " created")
+        if isinstance(x.struct_info, relax.TupleStructInfo):
+            out = x[index]
+        elif isinstance(x.struct_info, relax.ShapeStructInfo):
+            from ..register_relax.getitem import get_item
+            out = self.bb.emit(get_item(x, index), name_hint=self._name)
+        logger.info("getitem_layer: " + self._name + " created")
         self.value = out

@@ -1,6 +1,7 @@
 from tvm import relax, topi
 from .custom_te import *
-from ..register_relax import avgpool, relu6
+from ..register_relax import avgpool, relu6, transpose, contiguous, chunk, getitem
+from loguru import logger
 
 DEFAULT_MAP_PATTERNS = dict()
     
@@ -12,6 +13,10 @@ def register_lower_pattern(te_map_name):
         return fn
     
     return insert
+
+def loggerdebug(x):
+    logger.debug(x)
+    logger.debug(type(x))
 
 # relax op
 @register_lower_pattern('relax.add')
@@ -56,12 +61,6 @@ def map_reshape_te(bb: relax.BlockBuilder, call: relax.Call):
     x, shape = call.args
     return bb.call_te(topi.reshape, x, shape)
 
-@register_lower_pattern('relax.permute_dims')
-def map_permutedims_te(bb: relax.BlockBuilder, call: relax.Call):
-    x = call.args[0]
-    attrs = call.attrs
-    return bb.call_te(permute_dims_te, x, attrs.axes)
-
 @register_lower_pattern('relax.concat')
 def map_permutedims_te(bb: relax.BlockBuilder, call: relax.Call):
     x = []
@@ -70,11 +69,43 @@ def map_permutedims_te(bb: relax.BlockBuilder, call: relax.Call):
     attrs = call.attrs
     return bb.call_te(topi.concatenate, x, attrs.axis.value)
 
+@register_lower_pattern('relax.chunk')
+def map_chunk_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    attrs = call.attrs
+    return bb.call_te(chunk_te, x, attrs.chunks, attrs.dim)
+
+# maybe wrong
+# --------------------------------------
 @register_lower_pattern('relax.shape_of')
-def map_permutedims_te(bb: relax.BlockBuilder, call: relax.Call):
+def map_shape_of_te(bb: relax.BlockBuilder, call: relax.Call):
     x = call.args[0]
     return bb.call_te(topi.shape, x)
 
+@register_lower_pattern('relax.permute_dims')
+def map_permutedims_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    axes = call.attrs.axes
+    if axes is not None:
+        return bb.call_te(topi.transpose, x, axes)
+    return bb.call_te(topi.transpose, x)
+
+@register_lower_pattern('relax.transpose')
+def map_transpose_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    axes = call.attrs.axes
+    return bb.call_te(topi.transpose, x, axes)
+
+@register_lower_pattern('relax.contiguous')
+def map_contiguous_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    return bb.call_te(contiguous_te, x)
+
+@register_lower_pattern('relax.get_item')
+def map_get_item_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    index = call.attrs.index
+    return bb.call_te(get_item_te, x, index)
 # nn.op
 @register_lower_pattern("relax.nn.softmax")
 def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
@@ -108,12 +139,10 @@ def map_relu_te(bb: relax.BlockBuilder, call: relax.Call):
 def map_conv_te(bb: relax.BlockBuilder, call: relax.Call):
     x, k = call.args
     attrs = call.attrs
-
     if attrs.groups == 1:
         return bb.call_te(topi.nn.conv2d, x, k, attrs.strides, attrs.padding, attrs.dilation)
     else:
         return bb.call_te(topi.nn.group_conv2d_nchw, x, k, attrs.strides, attrs.padding, attrs.dilation, attrs.groups)
-
 
 # nn.pooling
 @register_lower_pattern('relax.nn.max_pool2d')

@@ -21,6 +21,14 @@ from .common_utils import (
 )
 
 
+def print_tensorIR(TensorIR):
+    '''
+        print tvm high/low level Tensor programs(include relax and TensorIR)
+    '''
+    logger.info(
+        TensorIR.show()
+    )
+
 class PytorchRelaxParser:
     def __init__(
         self, model, inputs, input_shapes, fuse=False, concrete_args=None, dynamic_batch=False, device='llvm',
@@ -49,14 +57,6 @@ class PytorchRelaxParser:
                 node_specs,
                 headers=["\nopcode", "\nname", "\ntarget", "\nargs", "\nkwargs"],
             )
-        )
-
-    def print_tensorIR(self, tensorIR):
-        '''
-            print tvm high/low level Tensor programs(include relax and TensorIR)
-        '''
-        logger.info(
-            tensorIR.show()
         )
 
     def print_op(self):
@@ -142,6 +142,7 @@ class PytorchRelaxParser:
                             dropout_layer = DropoutLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, dropout_layer)
                         else:
+                            logger.debug(node.target)
                             raise NotImplementedError('nn.Module type %s is not implemented now!' % type(module))
                     elif node.op == 'call_function':
                         function_name = get_function_name(node.target)
@@ -193,21 +194,33 @@ class PytorchRelaxParser:
                         elif function_name == 'getattr': # F.maxpooling
                             getattr_layer = GetAttrFunc(bb, node, self.node_map)
                             self.node_post_process(node, getattr_layer)
+                        elif function_name == 'stochastic_depth': # F.maxpooling
+                            stochastic_depth_layer = StochasticDepthFunc(bb, node, self.node_map)
+                            self.node_post_process(node,stochastic_depth_layer)
                         else:
-                            print(node.target, node)
+                            logger.debug(node.target)
                             raise NotImplementedError('func type %s is not implemented now!' % function_name)
                     elif node.op == 'call_method':
-                        logger.debug(node.target)
                         if str(node.target) == 'view':
                             reshape_layer = ReshapeFunc(bb, node, self.node_map)
                             self.node_post_process(node, reshape_layer)
+                        elif str(node.target) == 'flatten':
+                            flatten_layer = FlattenFunc(bb, node, self.node_map)
+                            self.node_post_process(node, flatten_layer)
                         elif str(node.target) == 'size':
                             size_layer = SizeFunc(bb, node, self.node_map)
                             self.node_post_process(node, size_layer)
                         elif str(node.target) == 'contiguous':
-                            contiguous_layer = SizeFunc(bb, node, self.node_map)
+                            contiguous_layer = ContiguousFunc(bb, node, self.node_map)
                             self.node_post_process(node, contiguous_layer)
+                        elif str(node.target) == 'chunk':
+                            chunk_layer = ChunkFunc(bb, node, self.node_map)
+                            self.node_post_process(node, chunk_layer)
+                        elif str(node.target) == 'mean':
+                            mean_layer = MeanFunc(bb, node, self.node_map)
+                            self.node_post_process(node, mean_layer)
                         else:
+                            logger.debug(node.target)
                             raise NotImplementedError('method %s is not implemented now!' % node.target)
                     elif node.op == 'output':
                         if output_layer is not None:

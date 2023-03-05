@@ -13,8 +13,10 @@ class FloorDivFunc(BaseLayer):
         y = self._source_node.args[1]
         logger.debug(self._source_node.kwargs)
         logger.debug(self._source_node.args)
+        logger.debug(x)
+        logger.debug(type(x))
         if isinstance(y, int):
-            y = relax.const(y, dtype=x.checked_type)
+            y = relax.const(y)
         else:
             y = self.node_map[y]
 

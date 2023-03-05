@@ -28,3 +28,7 @@ from .pooling_func import Pool2dFunc
 from .concat_func import ConcatFunc
 from .size_func import SizeFunc
 from .transpose_func import TransposeFunc
+from .contiguous_func import ContiguousFunc
+from .chunk_func import ChunkFunc
+from .mean_func import MeanFunc
+from .stochasticdepth_func import StochasticDepthFunc
