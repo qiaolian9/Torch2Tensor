@@ -1,8 +1,5 @@
-import re
 from loguru import logger
-import torch.nn as nn
-from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 
 class LinearLayer(BaseLayer):
@@ -18,7 +15,7 @@ class LinearLayer(BaseLayer):
             bias = None
             
         # out = self.bb.emit(relax.op.linear(x, w, bias), name_hint=self._name)
-        from ..register_relax.nn.dense import dense
+        from ...register_relax.nn.dense import dense
         out = self.bb.emit(dense(x, w, bias), name_hint=self._name)
         logger.info("linear_layer: " + self._name + " created")
         self.value = out

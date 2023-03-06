@@ -2,7 +2,7 @@ import re
 from loguru import logger
 import torch.nn as nn
 from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 
 class ConvLayer(BaseLayer):

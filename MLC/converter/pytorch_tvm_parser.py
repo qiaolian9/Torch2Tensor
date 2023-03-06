@@ -11,7 +11,7 @@ import tvm
 # np.random.seed(0)
 
 from .relax_layers import *
-from .tensorIR_layer import *
+from .tensorIR_layers import *
 from .pytorch_graph import PytorchGraph
 from .common_utils import (
     map_reduce,
@@ -239,7 +239,7 @@ class PytorchRelaxParser:
         '''
             generate low level TensorIR from Relax IR
         '''
-        from .tensorIR_layer.lower_to_tensorir_pass import LowerToTensorIRPass
+        from .tensorIR_layers.lower_to_tensorir_pass import LowerToTensorIRPass
         self.TensorIR = LowerToTensorIRPass()(self.relax_graph)
 
 
@@ -314,7 +314,7 @@ class PytorchRelaxParser:
             np.testing.assert_allclose(
                 pytorch_output_list[idx],
                 tvm_output[idx],
-                rtol=1e-2,
+                rtol=1e-5,
                 atol=1e-5
             )
         logger.info("accuracy test passed")

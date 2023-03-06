@@ -1,6 +1,6 @@
 from loguru import logger
-from .base_layer import BaseLayer
-from ..relax_utils import fetch_attr
+from ..base_layer import BaseLayer
+from ...relax_utils import fetch_attr
 from tvm import relax
 
 class GetAttrFunc(BaseLayer):

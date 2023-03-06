@@ -1,9 +1,7 @@
-import re
 from loguru import logger
-import tvm
 from tvm import relax
-from .base_layer import BaseLayer
-from ..common_utils import get_function_name
+from ..base_layer import BaseLayer
+from ...common_utils import get_function_name
 
 class Pool2dFunc(BaseLayer):
     def __init__(self, bb, source_node, node_map=None, module=None, auto_gen=True):
@@ -51,7 +49,7 @@ class Pool2dFunc(BaseLayer):
         attr_dict = self.get_avgpool2d_attr()
         logger.debug(attr_dict)
         if self.pooltype == 'avgpool2d':
-            from ..register_relax.nn.pool.avgpool import avg_pool2d
+            from ...register_relax.nn.pool.avgpool import avg_pool2d
             out = self.bb.emit(avg_pool2d(x, **attr_dict), name_hint=self._name)
         elif self.pooltype == 'maxpool2d':
             attr_dict['pool_size'] = self._source_node.args[1]

@@ -1,7 +1,7 @@
 from loguru import logger
 
 from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 class MatmulFunc(BaseLayer):
     def __init__(self, source_node, module=None, auto_gen=True):

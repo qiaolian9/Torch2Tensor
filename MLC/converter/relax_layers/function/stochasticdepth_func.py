@@ -1,12 +1,6 @@
 from loguru import logger
-import numpy as np
 
-from tvm import relax
-from .base_layer import BaseLayer
-from ..common_utils import (
-    get_shape,
-    map_reduce,
-)
+from ..base_layer import BaseLayer
 
 class StochasticDepthFunc(BaseLayer):
     def __init__(self, source_node, module=None, auto_gen=True):

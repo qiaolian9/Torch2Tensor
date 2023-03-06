@@ -1,7 +1,6 @@
 from loguru import logger
-from tvm import relax
 
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 class ChunkFunc(BaseLayer):
     def __init__(self, source_node, module=None, auto_gen=True):
@@ -12,7 +11,7 @@ class ChunkFunc(BaseLayer):
         chunks = self._source_node.args[1]
         dim = self._source_node.kwargs['dim']
 
-        from ..register_relax.otherop.chunk import chunk
+        from ...register_relax.otherop.chunk import chunk
         out = self.bb.emit(chunk(x, chunks, dim), name_hint=self._name)
         logger.info("chunks_layer: " + self._name + " created")
         self.value = out

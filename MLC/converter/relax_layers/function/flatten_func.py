@@ -1,16 +1,15 @@
 from loguru import logger
-import numpy as np
 
 from tvm import relax
-from .base_layer import BaseLayer
-from ..common_utils import (
+from ..base_layer import BaseLayer
+from ...common_utils import (
     get_shape,
     map_reduce,
 )
 
-class ReshapeFunc(BaseLayer):
+class FlattenFunc(BaseLayer):
     def __init__(self, source_node, module=None, auto_gen=True):
-        super(ReshapeFunc, self).__init__(source_node, module, auto_gen)
+        super(FlattenFunc, self).__init__(source_node, module, auto_gen)
 
     def get_flatten_attr(self):
         attr_dict = dict(shape=None)
@@ -20,6 +19,7 @@ class ReshapeFunc(BaseLayer):
             _output_shape.extend(
                 map_reduce(self._source_node.meta["tensor_meta"], get_shape)
             )
+        # attr_dict["shape"] = np.array(_output_shape[0], dtype=np.int64)
         attr_dict["shape"] = _output_shape[0]
 
         return attr_dict
@@ -27,10 +27,9 @@ class ReshapeFunc(BaseLayer):
     def generate_node(self):
         x = self.node_map[self._source_node.args[0]]
         attr_dict = self.get_flatten_attr()
-        logger.debug(attr_dict['shape'])
+        logger.debug(attr_dict)
 
-        # shape = self._source_node.args[1]
-        # out = self.bb.emit(relax.op.reshape(x, shape), name_hint=self._name)
         out = self.bb.emit(relax.op.reshape(x, **attr_dict), name_hint=self._name)
-        logger.info("reshape_layer: " + self._name + " created")
+        
+        logger.info("flatten_layer: " + self._name + " created")
         self.value = out

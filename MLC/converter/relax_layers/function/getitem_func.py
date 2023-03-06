@@ -1,8 +1,6 @@
-import re
 from loguru import logger
-import torch.nn as nn
 from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 class GetItemFunc(BaseLayer):
     def __init__(self, bb, source_node, node_map=None, module=None, auto_gen=True):
@@ -14,7 +12,7 @@ class GetItemFunc(BaseLayer):
         if isinstance(x.struct_info, relax.TupleStructInfo):
             out = x[index]
         elif isinstance(x.struct_info, relax.ShapeStructInfo):
-            from ..register_relax.otherop.getitem import get_item
+            from ...register_relax.otherop.getitem import get_item
             out = self.bb.emit(get_item(x, index), name_hint=self._name)
         logger.info("getitem_layer: " + self._name + " created")
         self.value = out

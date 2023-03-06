@@ -1,6 +1,6 @@
 from loguru import logger
 from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 import torch.nn as nn
 
 
@@ -14,19 +14,19 @@ class ActivateLayer(BaseLayer):
         if isinstance(self._module, nn.ReLU):  
             out = self.bb.emit(relax.op.nn.relu(x), name_hint=self._name)
         elif isinstance(self._module, nn.ReLU6):
-            from ..register_relax.nn.activate.relu6 import relu6
+            from ...register_relax.nn.activate.relu6 import relu6
             out = self.bb.emit(relu6(x), name_hint=self._name)
         elif isinstance(self._module, nn.SiLU):
             out = self.bb.emit(relax.op.nn.silu(x), name_hint=self._name)
         elif isinstance(self._module, nn.Hardswish):
-            from ..register_relax.nn.activate.hardswish import hardswish
+            from ...register_relax.nn.activate.hardswish import hardswish
             out = self.bb.emit(hardswish(x), name_hint=self._name)
 
         elif isinstance(self._module, nn.Sigmoid):
             out = self.bb.emit(relax.op.sigmoid(x), name_hint=self._name)
         elif isinstance(self._module, nn.Hardsigmoid):
-            from ..register_relax.nn.activate.hardsigmoid import hardsigmoid
-            out = self.bb.emit(relax.op.sigmoid(x), name_hint=self._name)
+            from ...register_relax.nn.activate.hardsigmoid import hardsigmoid
+            out = self.bb.emit(hardsigmoid(x), name_hint=self._name)
         elif isinstance(self._module, nn.Softmax):
             if self._module is not None:
                 dim = self._module.dim

@@ -1,12 +1,6 @@
 from loguru import logger
-import numpy as np
 
-from tvm import relax
-from .base_layer import BaseLayer
-from ..common_utils import (
-    get_shape,
-    map_reduce,
-)
+from ..base_layer import BaseLayer
 
 class TransposeFunc(BaseLayer):
     def __init__(self, source_node, module=None, auto_gen=True):
@@ -18,7 +12,7 @@ class TransposeFunc(BaseLayer):
         dim2 = self._source_node.args[2]
         logger.info(dim1)
         logger.info(type(dim1))
-        from ..register_relax.otherop.transpose import transpose
+        from ...register_relax.otherop.transpose import transpose
         out = self.bb.emit(transpose(x, dim1, dim2), name_hint=self._name)
         logger.info("transpose_layer: " + self._name + " created")
         self.value = out

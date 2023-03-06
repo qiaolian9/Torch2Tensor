@@ -1,7 +1,7 @@
 from loguru import logger
 import torch.nn as nn
 from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 class LayerNormLayer(BaseLayer):
     def __init__(self, bb: relax.BlockBuilder, source_node, node_map: dict, module=None, auto_gen=True):

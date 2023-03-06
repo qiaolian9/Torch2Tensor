@@ -1,6 +1,6 @@
 from loguru import logger
 from tvm import relax
-from .base_layer import BaseLayer
+from ..base_layer import BaseLayer
 
 
 class ReluFunc(BaseLayer):
