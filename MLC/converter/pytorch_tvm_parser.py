@@ -117,12 +117,14 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.BatchNorm2d):
                             batchnorm_layer = BatchNormLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, batchnorm_layer)
-                        elif isinstance(module, (nn.ReLU, nn.ReLU6)):
-                            relu_layer = ReluLayer(bb, node, self.node_map, module)
-                            self.node_post_process(node, relu_layer)
-                        elif isinstance(module, nn.SiLU):
-                            silu_layer = ReluLayer(bb, node, self.node_map, module)
-                            self.node_post_process(node, silu_layer)
+                        elif isinstance(module, nn.LayerNorm):
+                            layernorm_layer = LayerNormLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, layernorm_layer)
+                        elif isinstance(module, (nn.ReLU, nn.ReLU6, nn.SiLU, 
+                                                 nn.Hardswish, nn.Sigmoid, nn.Softmax,
+                                                 nn.Hardsigmoid)):
+                            activate_layer = ActivateLayer(bb, node, self.node_map, module)
+                            self.node_post_process(node, activate_layer)
                         elif isinstance(module, nn.Linear):
                             linear_layer = LinearLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, linear_layer)
@@ -132,12 +134,6 @@ class PytorchRelaxParser:
                         elif isinstance(module, nn.AdaptiveAvgPool2d):
                             adaptiveavgpool2d_layer = Pool2dLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, adaptiveavgpool2d_layer)
-                        elif isinstance(module, nn.Softmax):
-                            softmax_layer = SoftMaxLayer(bb, node, self.node_map, module)
-                            self.node_post_process(node, softmax_layer)
-                        elif isinstance(module, nn.Sigmoid):
-                            sigmoid_layer = SigmoidLayer(bb, node, self.node_map, module)
-                            self.node_post_process(node, sigmoid_layer)
                         elif isinstance(module, nn.Dropout):
                             dropout_layer = DropoutLayer(bb, node, self.node_map, module)
                             self.node_post_process(node, dropout_layer)

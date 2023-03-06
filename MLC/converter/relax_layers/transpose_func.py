@@ -18,7 +18,7 @@ class TransposeFunc(BaseLayer):
         dim2 = self._source_node.args[2]
         logger.info(dim1)
         logger.info(type(dim1))
-        from ..register_relax.transpose import transpose
+        from ..register_relax.otherop.transpose import transpose
         out = self.bb.emit(transpose(x, dim1, dim2), name_hint=self._name)
         logger.info("transpose_layer: " + self._name + " created")
         self.value = out

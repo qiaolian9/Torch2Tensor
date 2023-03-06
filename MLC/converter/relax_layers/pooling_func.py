@@ -51,7 +51,7 @@ class Pool2dFunc(BaseLayer):
         attr_dict = self.get_avgpool2d_attr()
         logger.debug(attr_dict)
         if self.pooltype == 'avgpool2d':
-            from ..register_relax.avgpool import avg_pool2d
+            from ..register_relax.nn.pool.avgpool import avg_pool2d
             out = self.bb.emit(avg_pool2d(x, **attr_dict), name_hint=self._name)
         elif self.pooltype == 'maxpool2d':
             attr_dict['pool_size'] = self._source_node.args[1]

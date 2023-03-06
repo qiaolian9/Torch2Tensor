@@ -7,12 +7,10 @@ from .getitem_func import GetItemFunc
 # nn.Module
 from .conv_layer import ConvLayer
 from .batchnorm_layer import BatchNormLayer
-from .relu_layer import ReluLayer
-from .silu_layer import SiLULayer
+from .layernorm_layer import LayerNormLayer
+from .activation_layer import ActivateLayer
 from .linear_layer import LinearLayer
 from .pooling_layer import Pool2dLayer
-from .softmax_layer import SoftMaxLayer
-from .sigmoid_layer import SigmoidLayer
 from .dropout_layer import DropoutLayer
 
 # function

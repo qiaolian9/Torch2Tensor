@@ -1,1 +1,2 @@
-# from .avgpool import avg_pool2d
+from .otherop import *
+from .nn import *

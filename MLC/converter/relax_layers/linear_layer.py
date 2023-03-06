@@ -17,6 +17,8 @@ class LinearLayer(BaseLayer):
         else:
             bias = None
             
-        out = self.bb.emit(relax.op.linear(x, w, bias), name_hint=self._name)
+        # out = self.bb.emit(relax.op.linear(x, w, bias), name_hint=self._name)
+        from ..register_relax.nn.dense import dense
+        out = self.bb.emit(dense(x, w, bias), name_hint=self._name)
         logger.info("linear_layer: " + self._name + " created")
         self.value = out

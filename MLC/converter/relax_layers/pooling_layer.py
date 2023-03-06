@@ -46,7 +46,7 @@ class Pool2dLayer(BaseLayer):
         if self.pooltype == 'maxpool2d':
             out = self.bb.emit(relax.op.nn.max_pool2d(x, **attr_dict), name_hint=self._name)
         elif self.pooltype == 'avgpool2d':
-            from ..register_relax.avgpool import avg_pool2d
+            from ..register_relax.nn.pool.avgpool import avg_pool2d
             out = self.bb.emit(avg_pool2d(x, **attr_dict), name_hint=self._name)
         elif self.pooltype == 'adaptiveavgpool2d':
             out = self.bb.emit(relax.op.nn.adaptive_avg_pool2d(x, **attr_dict), name_hint=self._name)

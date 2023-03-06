@@ -9,7 +9,7 @@ class ContiguousFunc(BaseLayer):
 
     def generate_node(self):
         x = self.node_map[self._source_node.args[0]]
-        from ..register_relax.contiguous import contiguous
+        from ..register_relax.otherop.contiguous import contiguous
         out = self.bb.emit(contiguous(x), name_hint=self._name)
         logger.info("contiguous_layer: " + self._name + " created")
         self.value = out

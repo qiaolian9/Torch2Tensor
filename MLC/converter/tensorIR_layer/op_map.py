@@ -1,6 +1,6 @@
 from tvm import relax, topi
 from .custom_te import *
-from ..register_relax import avgpool, relu6, transpose, contiguous, chunk, getitem
+from ..register_relax import *
 from loguru import logger
 
 DEFAULT_MAP_PATTERNS = dict()
@@ -108,15 +108,25 @@ def map_get_item_te(bb: relax.BlockBuilder, call: relax.Call):
     return bb.call_te(get_item_te, x, index)
 # nn.op
 @register_lower_pattern("relax.nn.softmax")
-def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
+def map_softmax_te(bb: relax.BlockBuilder, call: relax.Call):
     x= call.args[0]
     attrs = call.attrs
     return bb.call_te(topi.nn.softmax, x, attrs.axis)
 
 @register_lower_pattern("relax.sigmoid")
-def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
+def map_sigmoid_te(bb: relax.BlockBuilder, call: relax.Call):
     x= call.args[0]
     return bb.call_te(topi.sigmoid, x)
+
+@register_lower_pattern("relax.hardsigmoid")
+def map_hardsigmoid_te(bb: relax.BlockBuilder, call: relax.Call):
+    x= call.args[0]
+    return bb.call_te(hardsigmoid_te, x)
+
+@register_lower_pattern("relax.nn.dense")
+def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
+    x, kernel, bias = call.args
+    return bb.call_te(dense_te, x, kernel, bias)
 
 # nn.activation
 @register_lower_pattern('relax.nn.relu')
@@ -130,9 +140,14 @@ def map_relu_te(bb: relax.BlockBuilder, call: relax.Call):
     return bb.call_te(silu_te, x)
 
 @register_lower_pattern('relax.nn.relu6')
-def map_relu_te(bb: relax.BlockBuilder, call: relax.Call):
+def map_relu6_te(bb: relax.BlockBuilder, call: relax.Call):
     x = call.args[0]
     return bb.call_te(relu6_te, x)
+
+@register_lower_pattern('relax.nn.hardswish')
+def map_hardswish_te(bb: relax.BlockBuilder, call: relax.Call):
+    x = call.args[0]
+    return bb.call_te(hardswish_te, x)
 
 # nn.conv
 @register_lower_pattern('relax.nn.conv2d')
@@ -171,9 +186,15 @@ def map_BatchNorm2d_te(bb: relax.BlockBuilder, call: relax.Call):
     # batch_norm has 3 return values(value & moving mean/var)
     return bb.call_te(topi.nn.batch_norm, x, gamma, beta, moving_mean, moving_var, attrs.axis, attrs.epsilon, attrs.center, attrs.scale)
 
+@register_lower_pattern('relax.nn.layer_norm')
+def map_BatchNorm2d_te(bb: relax.BlockBuilder, call: relax.Call):
+    x, gamma, beta = call.args[:3]
+    attrs = call.attrs
+    return bb.call_te(topi.nn.layer_norm, x, gamma, beta,  attrs.axes, attrs.epsilon)
+
 # nn.dropout
 @register_lower_pattern("relax.nn.dropout")
-def map_dense_te(bb: relax.BlockBuilder, call: relax.Call):
+def map_dropout_te(bb: relax.BlockBuilder, call: relax.Call):
     x = call.args[0]
     rate = call.attrs.rate
     return bb.call_te(dropout_te, x, rate)

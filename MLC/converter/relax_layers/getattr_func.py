@@ -11,7 +11,9 @@ class GetAttrFunc(BaseLayer):
         x = self.node_map[self._source_node.args[0]]
         index = self._source_node.args[1]
         if index == 'shape':
-            out = self.bb.emit(relax.get_shape_of(x), name_hint=self._name)
+            out = self.bb.emit(relax.op.shape_of(x), name_hint=self._name)
+        else:
+            pass
 
         logger.info("getattr_layer: " + self._name + " created")
         self.value = out
