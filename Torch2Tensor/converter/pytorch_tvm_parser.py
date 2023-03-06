@@ -157,21 +157,15 @@ class PytorchRelaxParser:
                         elif function_name == 'floordiv':
                             floordiv_layer = FloorDivFunc(bb, node, self.node_map)
                             self.node_post_process(node, floordiv_layer)
-                        elif function_name == 'relu':
-                            relu_layer = ReluFunc(bb, node, self.node_map)
-                            self.node_post_process(node, relu_layer)
+                        elif function_name in ['relu', 'sigmoid', 'softmax']:
+                            activate_layer = ActivateFunc(bb, node, self.node_map)
+                            self.node_post_process(node, activate_layer)
                         elif function_name == 'flatten':
                             flatten_layer = FlattenFunc(bb, node, self.node_map)
                             self.node_post_process(node, flatten_layer)
                         elif function_name == 'concat' or function_name == 'cat':
                             concat_layer = ConcatFunc(bb, node, self.node_map)
                             self.node_post_process(node, concat_layer)
-                        elif function_name == 'softmax':
-                            sigmoid_layer = SoftMaxLayer(bb, node, self.node_map)
-                            self.node_post_process(node, sigmoid_layer)
-                        elif function_name == 'sigmoid':
-                            sigmoid_layer = SigmoidLayer(bb, node, self.node_map)
-                            self.node_post_process(node, sigmoid_layer)
                         elif function_name == 'avg_pool2d':
                             avgpool2d_layer = Pool2dFunc(bb, node, self.node_map)
                             self.node_post_process(node, avgpool2d_layer)

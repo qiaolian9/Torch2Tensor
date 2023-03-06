@@ -10,9 +10,9 @@ from .matmul_func import MatmulFunc
 from .mean_func import MeanFunc
 from .mul_func import MulFunc
 from .pooling_func import Pool2dFunc
-from .relu_func import ReluFunc
 from .reshape_func import ReshapeFunc
 from .size_func import SizeFunc
 from .stochasticdepth_func import StochasticDepthFunc
 from .sub_func import SubFunc
 from .transpose_func import TransposeFunc
+from .activate_func import ActivateFunc

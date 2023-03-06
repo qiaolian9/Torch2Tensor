@@ -43,15 +43,15 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
 # Supported torch operations now(for high-level Relax IR)
 |type|name|
 |---|---|
-|nn.Module|conv2d,batchnorm,linear/dense,maxpool2d,adaptive_avg_pool2d,avg_pool2d,softmax,sigmoid,Dropout,relu,silu,relu6,hardsigmoid,hardswish|
-|function|flatten,add,relu,reshape,matmul,multiply,subtract,softmax,sigmoid,maxpool2d,avgpool2d,concat,transpose,floordiv,stochasticdepth|
-|method|view(reshape),size,contiguous,chunk,mean,getitem,getattr|
+|nn.Module|Conv2d, BatchNorm, LayerNorm, Linear/Dense, Maxpool2d, AdaptiveAvgPool2d,<br>Avgpool2d, Softmax, Sigmoid, ReLU, SiLU, ReLU6, Hardsigmoid, Hardswish, Dropout|
+|function|flatten, add, relu, reshape, matmul, multiply, subtract,softmax, sigmoid, <br>maxpool2d, avgpool2d, concat, transpose,floordiv, stochasticdepth|
+|method|view(reshape), size, contiguous, chunk, mean, getitem, getattr|
 
 
 # Supported BenchMark
 |task|type|name|
 |---|---|---|
-|Cls|CNN(13)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet,EfficientNet,MobileNetv3|
+|Cls|CNN(13)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,<br>Shufflenet,Regnet,MNasnet,Squeezenet,EfficientNet,MobileNetv3|
 |---|Transformer|SimpleViT,ViT(*)|
 
 # Installation
