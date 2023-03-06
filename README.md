@@ -48,7 +48,7 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
 |method|view(reshape),size,contiguous,chunk,mean,getitem,getattr|
 
 
-# BenchMark
+# Supported BenchMark
 |task|type|name|
 |---|---|---|
 |Cls|CNN(13)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet,EfficientNet,MobileNetv3|
