@@ -19,7 +19,8 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
         cls_model_name = ['alexnet', 'googlenet', 'vgg11', 'resnet50', 
                   'inception_v3', 'densenet121', 'mobilenet_v2', 
                   'shufflenet_v2_x1_0', 'regnet_y_400mf', 'mnasnet0_5', 
-                  'squeezenet1_0', 'efficientnet_b0']
+                  'squeezenet1_0', 'efficientnet_b0', 'mobilenet_v3_small]
+        
 
         # CNN cls model
         model = getattr(models, cls_model_name[0])()
@@ -42,7 +43,7 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
 # Supported torch operations now(for high-level Relax IR)
 |type|name|
 |---|---|
-|nn.Module|conv2d,batchnorm,relu,silu,relu6,linear,maxpool2d,adaptive_avg_pool2d,avg_pool2d,softmax,sigmoid,Dropout|
+|nn.Module|conv2d,batchnorm,linear/dense,maxpool2d,adaptive_avg_pool2d,avg_pool2d,softmax,sigmoid,Dropout,relu,silu,relu6,hardsigmoid,hardswish|
 |function|flatten,add,relu,reshape,matmul,multiply,subtract,softmax,sigmoid,maxpool2d,avgpool2d,concat,transpose,floordiv,stochasticdepth|
 |method|view(reshape),size,contiguous,chunk,mean,getitem,getattr|
 
@@ -50,8 +51,8 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
 # BenchMark
 |task|type|name|
 |---|---|---|
-|Cls|CNN(12)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet1,EfficientNet|
-|---|Transformer|ViT(*)|
+|Cls|CNN(13)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet1,EfficientNet,MobileNetv3|
+|---|Transformer|SimpleViT,ViT(*)|
 
 # Installation
 ```bash
@@ -69,3 +70,13 @@ pip install git+git@github.com:qiaolian9/mlc.git
 2. torch.fx.wrap (eg. func-len())
 3. fix getitem potential bug
 4. develop more ops
+
+# Note
+1. register op nn.dense now support input data with more than 2-dim tensor
+2. if you use rearrange from einops, you should use primitive op(transpose, view, contiguous,etc.) replace it.(due to func len in einops)
+```python
+# out = rearrange(out, 'b h n d -> b n (h d)')
+out = torch.transpose(out, 1, 2).contiguous()
+shape = out.size()
+out = out.view((shape[0], shape[1], -1))
+```
