@@ -11,10 +11,6 @@ class FloorDivFunc(BaseLayer):
         assert len(self._source_node.args) == 2
         x = self.node_map[self._source_node.args[0]]
         y = self._source_node.args[1]
-        logger.debug(self._source_node.kwargs)
-        logger.debug(self._source_node.args)
-        logger.debug(x)
-        logger.debug(type(x))
         if isinstance(y, int):
             y = relax.const(y)
         else:

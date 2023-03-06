@@ -7,19 +7,14 @@ A easy tool for generating Tensor Program from torch nn.module
 ## Main Process
 ```
 nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor IR ---> ex&vm
-torch fx based pytorch model compiler, including relax ---> low level TensorIR
 ```
 
 # How to use
-
-* torch2tvm
+* Torch2Tensor
     ``` python
         import torch
         import torchvision.models as models
-        import torch.nn.functional as F
-        from torch import nn
         from MLC.converter.pytorch_tvm_parser import PytorchRelaxParser, print_tensorIR
-        from test.model.vit import vit
 
         cls_model_name = ['alexnet', 'googlenet', 'vgg11', 'resnet50', 
                   'inception_v3', 'densenet121', 'mobilenet_v2', 
@@ -55,11 +50,12 @@ torch fx based pytorch model compiler, including relax ---> low level TensorIR
 # BenchMark
 |task|type|name|
 |---|---|---|
-|Cls|CNN(10)|Alexnet,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Regnet,MNasnet,Squeezenet1,EfficientNet|
+|Cls|CNN(12)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet1,EfficientNet|
 |---|Transformer|ViT(*)|
 
 # Installation
 ```bash
+# still in developing, maybe unstable
 pip install git+git@github.com:qiaolian9/mlc.git
 ```
 
@@ -72,3 +68,4 @@ pip install git+git@github.com:qiaolian9/mlc.git
 1. register xxattrs(transpose & avgpool2d)
 2. torch.fx.wrap (eg. func-len())
 3. fix getitem potential bug
+4. develop more ops
