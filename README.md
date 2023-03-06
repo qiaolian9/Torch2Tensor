@@ -43,9 +43,9 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
 # Supported torch operations now(for high-level Relax IR)
 |type|name|
 |---|---|
-|nn.Module|Conv2d, BatchNorm, LayerNorm, Linear/Dense, Maxpool2d, AdaptiveAvgPool2d,<br>Avgpool2d, Softmax, Sigmoid, ReLU, SiLU, ReLU6, Hardsigmoid, Hardswish, Dropout|
-|function|flatten, add, relu, reshape, matmul, multiply, subtract,softmax, sigmoid, <br>maxpool2d, avgpool2d, concat, transpose,floordiv, stochasticdepth|
-|method|view(reshape), size, contiguous, chunk, mean, getitem, getattr|
+|nn.Module|Conv2d, BatchNorm, LayerNorm, Linear/Dense, Maxpool2d, AdaptiveAvgPool2d, Avgpool2d, Softmax, Sigmoid, ReLU, SiLU, ReLU6, Hardsigmoid, Hardswish, Dropout|
+|function|flatten, add, relu, reshape, matmul, multiply, subtract, softmax, sigmoid, maxpool2d, avgpool2d, concat, transpose, floordiv, stochasticdepth|
+|method|view(reshape), size, contiguous, chunk, mean, shape, getitem, getattr|
 
 
 # Supported BenchMark
