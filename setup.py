@@ -14,15 +14,9 @@ setuptools.setup(
     url="https://github.com/qiaolian9/Torch2Tensor",
     install_requires=[
         "loguru",
-        'numpy',
-        'matplotlib',
-        'requests',
-        'pandas',
-        'sphinx',
         'torch',
         'torchvision',
         'xgboost==1.5',
-        'tabulate',
         'mlc-ai-nightly-cu113'
         ],
     dependency_links=[
