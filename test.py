@@ -1,6 +1,6 @@
 import torch
 import torchvision.models as models
-from MLC.converter.pytorch_tvm_parser import PytorchRelaxParser, print_tensorIR
+from Torch2Tensor.converter.pytorch_tvm_parser import PytorchRelaxParser, print_tensorIR
 
 cls_model_name = ['alexnet', 'googlenet', 'vgg11', 'resnet50', 
                   'inception_v3', 'densenet121', 'mobilenet_v2', 
