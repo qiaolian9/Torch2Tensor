@@ -32,7 +32,7 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
         PR.convert() # torch.nn.Module -> torch.fx.graph & tvm relax IR
         print_tensorIR(PR.relax_graph) # -> show Relax IR
         PR.gen_TensorIR() # tvm relax IR -> tvm tensor IR
-        #print_tensorIR(PR.TensorIR)  # show Tensor IR
+        # print_tensorIR(PR.TensorIR)  # show Tensor IR
 
         # PR.mlc_tune_tir() # auto schedule(ansor) tune tir
 
@@ -51,7 +51,7 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
 # BenchMark
 |task|type|name|
 |---|---|---|
-|Cls|CNN(13)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet1,EfficientNet,MobileNetv3|
+|Cls|CNN(13)|Alexnet,VGG11,Resnet50,Inceptionv3,GoogleNet,Densenet121,Mobilenetv2,Shufflenet,Regnet,MNasnet,Squeezenet,EfficientNet,MobileNetv3|
 |---|Transformer|SimpleViT,ViT(*)|
 
 # Installation
@@ -79,4 +79,10 @@ pip install git+git@github.com:qiaolian9/mlc.git
 out = torch.transpose(out, 1, 2).contiguous()
 shape = out.size()
 out = out.view((shape[0], shape[1], -1))
+```
+3. if you wanna register your own special op, you should do 3 steps:
+```
+1. register your op in dir: converter/register_relax/
+2. construct your op_layer in dir: converter/relax_layer/
+3. define your low-level te computation in dir: converter/tensorIR_layer/
 ```
