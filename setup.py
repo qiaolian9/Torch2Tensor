@@ -14,6 +14,7 @@ setuptools.setup(
     url="https://github.com/qiaolian9/Torch2Tensor",
     install_requires=[
         "loguru",
+        'tabulate',
         'torch',
         'torchvision',
         'xgboost==1.5',

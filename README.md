@@ -14,32 +14,54 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor I
     ``` python
         import torch
         import torchvision.models as models
-        from Torch2Tensor.converter.pytorch_tvm_parser import PytorchRelaxParser, print_tensorIR
+        from Torch2Tensor.t2t import T2TParser
 
         cls_model_name = ['alexnet', 'googlenet', 'vgg11', 'resnet50', 
-                  'inception_v3', 'densenet121', 'mobilenet_v2', 
-                  'shufflenet_v2_x1_0', 'regnet_y_400mf', 'mnasnet0_5', 
-                  'squeezenet1_0', 'efficientnet_b0', 'mobilenet_v3_small]
-        
+                        'inception_v3', 'densenet121', 'mobilenet_v2', 
+                        'shufflenet_v2_x1_0', 'regnet_y_400mf', 'mnasnet0_5', 
+                        'squeezenet1_0', 'efficientnet_b0', 'mobilenet_v3_small']
 
         # CNN cls model
-        model = getattr(models, cls_model_name[0])()
+        mlc_dict = dict(target='cuda --max_threads_per_block=1024 --max_shared_memory_per_block=49152', work_dir="./tune_tmp", 
+                    task_name='main', max_trials_global=64, 
+                    num_trials_per_iter=32, compile_tir_target='cuda')
+        
+        class Demo(torch.nn.Module):
+            def __init__(self) -> None:
+                super().__init__()
+                self.conv = torch.nn.Conv2d(3, 3, 3)
+                self.ada = torch.nn.AdaptiveAvgPool2d((1, 1))
+                self.linear = torch.nn.Linear(3, 1)
+            
+            def forward(self, x):
+                x = self.conv(x)
+                x = self.ada(x).view((1, -1))
+                x = self.linear(x)
+                return x
 
-        x = torch.randn((1,3,224,224))
-        input_shapes = [(1,3,224,224)]
+        if __name__ == "__main__":
+            model = Demo()
+            # model = getattr(models, 'resnet50')()
+            x = torch.randn((1,3,224, 224))
+            input_shapes = [(1,3, 224, 224)]
 
-        PR = PytorchRelaxParser(model, x, input_shapes)
-        PR.convert() # torch.nn.Module -> torch.fx.graph & tvm relax IR
-        print_tensorIR(PR.relax_graph) # -> show Relax IR
-        PR.gen_TensorIR() # tvm relax IR -> tvm tensor IR
-        # print_tensorIR(PR.TensorIR)  # show Tensor IR
+            PR = T2TParser(model, x, input_shapes, **mlc_dict)
 
-        # PR.mlc_tune_tir() # auto schedule(ansor) tune tir
+            PR.convert()      # torch.nn.Module -> torch.fx.graph & tvm relax IR
+            PR.print_tabular(PR.pytorch_graph)
+            PR.print_ir(PR.relax_graph)   # -> show Relax IR
+            
+            PR.gen_TensorIR()   # tvm relax IR -> tvm tensor IR
+            PR.print_ir(PR.TensorIR)   # show Tensor IR
+            PR.print_op(PR.TensorIR)   # print all operations in model
 
-        PR.print_op() # print all operations in model
-        PR.check_result() # check correct between tensor program and torch model
+            PR.tune_tir()  # ansor: automatic tensor code optimizer
+            PR.print_ir(PR.tuned_TensorIR)  # show optimizer tensor program
+
+            PR.check_result()  # check tensor program correctness
+            PR.infer_benchmark()  # test tensor program performance
     ```
-
+**Usage Detail in [/example/example.ipynb](https://github.com/qiaolian9/Torch2Tensor/tree/main/examples/example.ipynb)**
 # Supported torch operations now(for high-level Relax IR)
 |type|name|
 |---|---|
