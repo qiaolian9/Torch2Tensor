@@ -1,6 +1,6 @@
 import tvm
 from tvm import meta_schedule as ms
-from tvm import IRModule
+from tvm import IRModule, relax
 from loguru import logger
 import os
 import shutil
@@ -31,11 +31,11 @@ class mlc_tuner:
         if op_list is None:
             raise Warning('please indicate the ops which will be tuned!')
         
-        if 'main' in op_list:
+        if 'main' in op_list and isinstance(self.TensorIR['main'], relax.Function):
             op_list.remove('main')
         logger.info(op_list)
         for i, op_name in enumerate(op_list):
-            logger.info("read to tune no.%d op: %s" % (i, op_name))
+            logger.info("ready to tune no.%d op: %s" % (i, op_name))
             mod_ = IRModule.from_expr(Model[op_name].with_attr('global_symbol', 'main'))
             new_func = self.mlc_tune_op(mod_, op_name)
             gv = Model.get_global_var(op_name)

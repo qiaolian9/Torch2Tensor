@@ -244,7 +244,7 @@ class T2TParser:
         if op_list is None:
             logger.info('tune all ops default')
             op_list = [x.name_hint for x in self.TensorIR.functions]
-            if 'main' in op_list:
+            if 'main' in op_list and isinstance(self.TensorIR['main'], relax.Function):
                 op_list.remove('main')
         self.tuned_TensorIR = self.mlc_tuner.mlc_tune_tir(self.TensorIR, op_list)
         self.benchmark.TensorIR = self.tuned_TensorIR

@@ -18,11 +18,11 @@ setuptools.setup(
         'torch',
         'torchvision',
         'xgboost==1.5',
-        'mlc-ai-nightly-cu113'
+        # 'mlc-ai-nightly-cu113'
         ],
     dependency_links=[
         'https://pypi.python.org/simple',
-        'https://mlc.ai/wheels',
+        # 'https://mlc.ai/wheels',
     ],
     project_urls={
         "Bug Tracker": "https://github.com/qiaolian9/Torch2Tensor/issues",

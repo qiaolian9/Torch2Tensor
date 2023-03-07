@@ -20,13 +20,14 @@ class Demo(torch.nn.Module):
     
     def forward(self, x):
         # x = self.conv(x)
-        x = self.ada(x).view((1, -1))
+        x = self.ada(x)
+        # x = x.view((1, -1))
         # x = self.linear(x)
         return x
 
 if __name__ == "__main__":
+    model = getattr(models, 'efficientnet_b0')()
     # model = Demo()
-    model = getattr(models, 'resnet50')()
     x = torch.randn((1,3,224, 224))
     input_shapes = [(1,3, 224, 224)]
 
