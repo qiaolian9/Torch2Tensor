@@ -6,7 +6,7 @@ A easy tool for generating Tensor Program from torch nn.module
 
 ## Main Process
 ```
-nn.Module ---> fx.graph ---> tvm relax IR ---> tvm tensor IR ---> tuned tensor IR ---> ex&vm
+nn.Module ---> fx.graph ---> tvm relax IR ---> tvm grapg fused relax IR ---> tvm tensor IR ---> tuned tensor IR ---> ex&vm
 ```
 
 # How to use
