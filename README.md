@@ -103,8 +103,9 @@ out = out.view((shape[0], shape[1], -1))
 ```
 3. if you wanna register your own special op, you should do 3 steps:
 ```
-1. register your op in dir: converter/register_relax/
-2. construct your op_layer in dir: converter/relax_layer/
-3. define your low-level te computation in dir: converter/tensorIR_layer/
+1. register your op in dir: Torch2Tensor/t2t_relax/op
+2. construct your op_layer in dir: /Torch2Tensor/t2t_relax/module or function
+3. define your own graph fuse pattern in dir: Torch2Tensor/t2t_optimizer/op_fuse
+4. define your low-level te computation in dir: Torch2Tensor/t2t_tir
 ```
 4. **still in developing, maybe unstable**
