@@ -51,7 +51,10 @@ nn.Module ---> fx.graph ---> tvm relax IR ---> graph fused relax IR ---> tvm ten
             PR.convert()      # torch.nn.Module -> torch.fx.graph & tvm relax IR
             PR.print_tabular(PR.pytorch_graph)
             PR.print_ir(PR.relax_graph)   # -> show Relax IR
-            
+
+            PR.fuse_op()   # relax graph fuse eg.matmul + add
+            PR.print_ir(PR.RelaxIR)   # show fused op Relax IR
+
             PR.gen_TensorIR()   # tvm relax IR -> tvm tensor IR
             PR.print_ir(PR.TensorIR)   # show Tensor IR
             PR.print_op(PR.TensorIR)   # print all operations in model

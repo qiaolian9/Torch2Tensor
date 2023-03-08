@@ -238,7 +238,7 @@ class T2TParser:
             generate low level TensorIR from Relax IR
         '''
         from .t2t_tir.lower_to_tensorir_pass import LowerToTensorIRPass
-        self.TensorIR = LowerToTensorIRPass()(self.relax_graph)
+        self.TensorIR = LowerToTensorIRPass()(self.RelaxIR)
         self.benchmark.TensorIR = self.TensorIR
 
     def tune_tir(self, op_list=None):
