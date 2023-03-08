@@ -86,7 +86,7 @@ pip install git+git@github.com:qiaolian9/mlc.git
 ```-->
 
 # Acknowledgement
-1. [Relax](https://github.com/tlc-pack/relax): relax(relay next)
+1. [Relax](https://github.com/tlc-pack/relax): relax(relay next)([relax'package](https://mlc.ai/wheels), this repo based on cuda11.3)
 2. [brocolli](https://github.com/inisis/brocolli): Torch Fx Pytorch Model Converter(for onnx & caffe)
 3. [MLC](https://mlc.ai/summer22-zh/): Machine Learning Compiler(chen etc.)
 
