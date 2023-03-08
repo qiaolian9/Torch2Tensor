@@ -17,19 +17,25 @@ class Demo(torch.nn.Module):
         self.conv = torch.nn.Conv2d(3, 3, 3)
         self.ada = torch.nn.AdaptiveAvgPool2d((1, 1))
         self.linear = torch.nn.Linear(3, 1)
+        self.weight = torch.randn(3, 10)
+        self.bias = torch.randn(1, 10)
     
     def forward(self, x):
         # x = self.conv(x)
-        x = self.ada(x)
+        # x = self.ada(x)
         # x = x.view((1, -1))
         # x = self.linear(x)
+        x = torch.matmul(x, self.weight)
+        # x = x @ self.weight
+        x = x + self.bias
+
         return x
 
 if __name__ == "__main__":
     model = getattr(models, 'efficientnet_b0')()
-    # model = Demo()
-    x = torch.randn((1,3,224, 224))
-    input_shapes = [(1,3, 224, 224)]
+    model = Demo()
+    x = torch.randn((1,3))
+    input_shapes = [(1,3)]
 
     PR = T2TParser(model, x, input_shapes, **mlc_dict)
 
@@ -37,12 +43,15 @@ if __name__ == "__main__":
     PR.print_tabular(PR.pytorch_graph)
     PR.print_ir(PR.relax_graph)
     
-    PR.gen_TensorIR()
-    PR.print_ir(PR.TensorIR)
-    PR.print_op(PR.TensorIR)
+    PR.fuse_op()
+    PR.print_ir(PR.RelaxIR)
 
-    PR.tune_tir()
-    PR.print_ir(PR.tuned_TensorIR)
+    # PR.gen_TensorIR()
+    # PR.print_ir(PR.TensorIR)
+    # PR.print_op(PR.TensorIR)
 
-    PR.check_result()
-    PR.infer_benchmark()
+    # PR.tune_tir()
+    # PR.print_ir(PR.tuned_TensorIR)
+
+    # PR.check_result()
+    # PR.infer_benchmark()

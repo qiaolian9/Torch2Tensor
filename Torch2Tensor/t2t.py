@@ -81,7 +81,7 @@ class T2TParser:
             pass
         else:
             raise Exception("model must be a torch.nn.Module or a torch.fx.GraphModule")
-        logger.debug(type(self.inputs[0]))
+        
         self.pytorch_graph = PytorchGraph(
             self.model, self.inputs, self.concrete_args, self.dynamic_batch
         )
@@ -110,7 +110,7 @@ class T2TParser:
                         fn_inputs.append(input_layer.value)
                         self.node_post_process(node, input_layer)
                     elif node.op == 'get_attr':
-                        getattr_layer = GetAttrLayer(bb, node, module=self.model)
+                        getattr_layer = GetAttrLayer(bb, node, self.node_map, module=self.model)
                         self.node_post_process(node, getattr_layer)
                     elif node.op == 'call_module':
                         module = self.named_modules[node.target]
@@ -230,7 +230,8 @@ class T2TParser:
         '''
             TO DO: op fused PASS
         '''
-        pass
+        from .t2t_optimizer.op_fuse.fuse_ma import FuseDenseAddPass
+        self.RelaxIR = FuseDenseAddPass() (self.relax_graph)
 
     def gen_TensorIR(self):
         '''
