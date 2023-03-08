@@ -225,7 +225,9 @@ class T2TParser:
         
         self.fn_inputs = fn_inputs
         self.relax_graph = bb.get()
-    
+        # temp 
+        self.RelaxIR = self.relax_graph
+        
     def fuse_op(self):
         '''
             TO DO: op fused PASS
