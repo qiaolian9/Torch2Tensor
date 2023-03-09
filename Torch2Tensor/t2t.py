@@ -224,16 +224,16 @@ class T2TParser:
             bb.emit_func_output(output_layer.value, fn_inputs)
         
         self.fn_inputs = fn_inputs
-        self.relax_graph = bb.get()
-        # temp 
-        self.RelaxIR = self.relax_graph
+        self.RelaxIR = bb.get()
         
     def fuse_op(self):
         '''
             TO DO: op fused PASS
         '''
-        from .t2t_optimizer.op_fuse.fuse_ma import FuseDenseAddPass
-        self.RelaxIR = FuseDenseAddPass() (self.relax_graph)
+        from .t2t_optimizer.op_fuse import FuseCBRPass, FuseDenseAddPass, FuseCBPass
+        self.RelaxIR = FuseDenseAddPass() (self.RelaxIR)
+        self.RelaxIR = FuseCBRPass()(self.RelaxIR)
+        self.RelaxIR = FuseCBPass()(self.RelaxIR)
 
     def gen_TensorIR(self):
         '''

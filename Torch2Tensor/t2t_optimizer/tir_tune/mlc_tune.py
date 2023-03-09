@@ -35,7 +35,7 @@ class mlc_tuner:
             op_list.remove('main')
         logger.info(op_list)
         for i, op_name in enumerate(op_list):
-            logger.info("ready to tune no.%d op: %s" % (i, op_name))
+            logger.info("ready to tune no.%d(total:%d)op: %s" % (i, len(op_list), op_name))
             mod_ = IRModule.from_expr(Model[op_name].with_attr('global_symbol', 'main'))
             new_func = self.mlc_tune_op(mod_, op_name)
             gv = Model.get_global_var(op_name)

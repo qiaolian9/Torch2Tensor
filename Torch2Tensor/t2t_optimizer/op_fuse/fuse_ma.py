@@ -2,10 +2,8 @@ from tvm import relax, IRModule
 from tvm.relax import Function
 from typing import Optional
 import tvm
-relax.transform.EwiseFuseFMA
 
-relax.op.linear
-
+__all_ = ['FuseDenseAddPass']
 @relax.expr_functor.mutator
 class DenseAddFusor(relax.PyExprMutator):
     def __init__(self, mod: Optional[IRModule] = None) -> None:
@@ -27,8 +25,8 @@ class DenseAddFusor(relax.PyExprMutator):
         bb = relax.BlockBuilder()
         with bb.function(fn_name, [x_, w_, b_]):
             with bb.dataflow():
-                lv0 = bb.emit(relax.op.matmul(x_, w_), name_hint='fuse_matmul')
-                lv1 = bb.emit(relax.op.add(lv0, b_), name_hint='fuse_matmul')
+                lv0 = bb.emit(relax.op.matmul(x_, w_))
+                lv1 = bb.emit(relax.op.add(lv0, b_))
                 gv = bb.emit_output(lv1)
             bb.emit_func_output(gv)
         
@@ -40,9 +38,9 @@ class DenseAddFusor(relax.PyExprMutator):
         # optimizer every relax function
         for global_var, func in self.mod_.functions.items():
             if not isinstance(func, relax.Function):
-                self.builder_.add_func(func, func_name=global_var.name_hint)
+                continue
             if func.attrs is not None and 'Primitive' in func.attrs and func['Primitive'] != 0:
-                self.builder_.add_func(func, func_name=global_var.name_hint)
+                continue
 
             updated_func = self.visit_expr(func)
             updated_func = relax.analysis.remove_all_unused(updated_func)
