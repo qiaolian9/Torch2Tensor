@@ -232,8 +232,8 @@ class T2TParser:
         '''
         from .t2t_optimizer.op_fuse import FuseCBRPass, FuseDenseAddPass, FuseCBPass
         self.RelaxIR = FuseDenseAddPass() (self.RelaxIR)
-        self.RelaxIR = FuseCBRPass()(self.RelaxIR)
-        self.RelaxIR = FuseCBPass()(self.RelaxIR)
+        # self.RelaxIR = FuseCBRPass()(self.RelaxIR)
+        # self.RelaxIR = FuseCBPass()(self.RelaxIR)
 
     def gen_TensorIR(self):
         '''

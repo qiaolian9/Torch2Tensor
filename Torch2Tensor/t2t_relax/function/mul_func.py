@@ -10,7 +10,10 @@ class MulFunc(BaseLayer):
     def generate_node(self):
         assert len(self._source_node.args) == 2
         x = self.node_map[self._source_node.args[0]]
-        y = self.node_map[self._source_node.args[1]]
+        if isinstance(self._source_node.args[1], (float, int)):
+            y = relax.const(self._source_node.args[1])
+        else:
+            y = self.node_map[self._source_node.args[1]]
 
         out = self.bb.emit(relax.op.multiply(x, y), name_hint=self._name)
         
